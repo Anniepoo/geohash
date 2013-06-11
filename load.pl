@@ -152,9 +152,9 @@ index_page(Request) :-
 
 disclaimer -->
 	html([div(class=newsbox, [h2('Disclaimer'),
-				  p('Check this site against another source!'),
-				  p(['This web site started. ', b('THIS WEEK')]),
-p('Currently it\'s almost certain that there are a number of bugs.'),
+				  p('This map application is new.'),
+				  p(['It has a test suite, which it passes, but only recently was deployed.']),
+p('Before you sail far out into Antarctic waters chasing a globalhash, it would be wise to check with another map as well.'),
 p(['If you see an incorrect hash point, please report',
 'it to ', a(href='mailto:annie66us@yahoo.com', 'Anniepoo'), ' including the url, ',
 'and ideally the source of the offending page, along with the local time and your',
