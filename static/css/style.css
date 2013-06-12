@@ -54,16 +54,22 @@ h1 {
     position: fixed;
     margin-left: 64px;
     z-index: 3;
-    top: 400px;
-    width: 250px;
+    bottom: 30px;
+    width: 800px;
 }
 
 .newsbox  p {
     font-size: 12px;
-    
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.newsbox  a {
+     color: #44f;
 }
 
 .newsbox h2 {
     font-weight: bold;
     font-size: 18px;
+    margin: 0px;
 }

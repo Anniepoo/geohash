@@ -4,7 +4,6 @@
 
    Copyright (c) 2013, Anne Ogborn
 
-
 */
 
 % might have to change this if you move geohashing
@@ -127,7 +126,9 @@ index_page(Request) :-
 			long(Long, [default('-121')]),
 			y(YY, [default(Y), integer]),
 			m(MM, [default(M), integer]),
-			d(DD, [default(D), integer])
+			d(DD, [default(D), integer]),
+			z(ZZ, [default(8), integer]),
+			provider(Provider, [default(leaflet), oneof([leaflet, google])])
 				 ]),
 	atom_codes(Lat, CLat),
 	atom_codes(Long, CLong),
@@ -137,39 +138,65 @@ index_page(Request) :-
 	    [
 	    \html_requires(css('style.css')),
 	    h1(['Impatient Geohasher',
-	       form(action=location_by_id(index),
+	       form([id=locform, action=location_by_id(index)],
 					 [
-					  input([type=number, min=1900, max=2099, name=y, value=YY, size=4], []),
-					  input([type=number, min=1, max=12, name=m, value=MM, size=2], []),
-					  input([type=number, min=1, max=31, name=d, value=DD, size=2], []),
-					  'lat:',input([type=number, min= -90, max= 90, name=lat, value=Lat, size=3], []),
-					  ' long:', input([type=number, min= -180, max=180, name=long, value=Long, size=4], []),
-					  input([type=submit, name=submit, value='Move'], [])
+					  input([type=hidden, id=provider, name=provider, value=Provider], []),
+					  input([type=hidden, id=z, name=z, value=ZZ], []),
+					  input([type=number, min=1900, max=2099, id=y, name=y, value=YY, size=4], []),
+					  input([type=number, min=1, max=12, id=m, name=m, value=MM, size=2], []),
+					  input([type=number, min=1, max=31, id=d, name=d, value=DD, size=2], []),
+					  'lat:',input([type=number, min= -90, max= 90, id=lat, name=lat, value=Lat, size=3], []),
+					  ' long:', input([type=number, min= -180, max=180, id=long, name=long, value=Long, size=4], []),
+					  input([type=submit, id=submitt, name=submitt, value='Move'], [])
 					 ])]),
-	    \geo_map(hash_map_opts(info( YY - MM - DD, Grat))),
+	    \geo_map(hash_map_opts(info( YY - MM - DD, Grat, ZZ))),
+	    \dynamic_update_script(leaflet),
 	     \disclaimer
 	    ]).
 
+% temporary til I write the google location adjust
+dynamic_update_script(google) -->
+	[].
+
+dynamic_update_script(leaflet) -->
+	html(
+	    script(type('text/javascript'),\[
+'function gratStyle(x) {
+      if(x <= -1.0) return  Math.ceil(x).toString();
+      if(x < 0.0) return \'-0\';
+      if(x < 1.0) return \'0\';
+      return Math.floor(x).toString();
+}',
+'function onMoveEnd(e) {
+    document.getElementById(\'lat\').value = gratStyle(minesweeper.getCenter().lat);
+    document.getElementById(\'long\').value = gratStyle(minesweeper.getCenter().lng);
+    document.getElementById(\'locform\').submit();
+
+}',
+'function onZoomEnd(e) {
+     document.getElementById(\'z\').value = minesweeper.getZoom();
+}',
+'minesweeper.on(\'zoomend\', onZoomEnd);',
+'minesweeper.on(\'moveend\', onMoveEnd);'])).
+
+
 disclaimer -->
 	html([div(class=newsbox, [h2('Disclaimer'),
-				  p('This map application is new.'),
-				  p(['It has a test suite, which it passes, but only recently was deployed.']),
-p('Before you sail far out into Antarctic waters chasing a globalhash, it would be wise to check with another map as well.'),
+				  p('This map application is new. It has a test suite, which it passes, but only recently was deployed.'),
+p('Before you sail far out into the Southern Ocean chasing a globalhash, it would be wise to check with another map as well.'),
 p(['If you see an incorrect hash point, please report',
-'it to ', a(href='mailto:annie66us@yahoo.com', 'Anniepoo'), ' including the url, ',
-'and ideally the source of the offending page, along with the local time and your',
-'graticule.'])])]).
+'it to ', a(href='mailto:annie66us@yahoo.com', 'Anniepoo'), ' with your date and graticule.'])])]).
 
-hash_map_opts(info(Date, Grat), center(Lat, Long)) :-
+hash_map_opts(info(Date, Grat, _), center(Lat, Long)) :-
 	hash_point(Date, Grat, point(Lat, Long)).
-hash_map_opts(info( YY - MM - DD, Grat), point(X,Y)) :-
+hash_map_opts(info( YY - MM - DD, Grat, _), point(X,Y)) :-
 	between(0, 3, Offset),
 	DDD is DD + Offset,
 	minesweeper(YY - MM - DDD, Grat, Pts),
 	member(point(X,Y), Pts).
 hash_map_opts(_, provider(leaflet)).
 hash_map_opts(_, id(minesweeper)).
-hash_map_opts(_, zoom(8)).
+hash_map_opts(info(_, _, Z), zoom(Z)).
 hash_map_opts(_, icon(monday, '/img/markerM-01.png', '/img/markerMmask-01.png')).
 hash_map_opts(_, icon(tuesday, '/img/markerT-01.png', '/img/markerMmask-01.png')).
 hash_map_opts(_, icon(wednesday, '/img/markerW-01.png', '/img/markerMmask-01.png')).
@@ -183,7 +210,7 @@ hash_map_opts(_, shadow_size(_, 48, 48)).
 hash_map_opts(_, icon_anchor(_, 27, 47)).
 hash_map_opts(_, shadow_anchor(_, 27, 47)).
 hash_map_opts(_, popup_anchor(_, -13, -48)).
-hash_map_opts(info(YY - MM - DD, Grat), icon_for(Pt, IconName)) :-
+hash_map_opts(info(YY - MM - DD, Grat, _), icon_for(Pt, IconName)) :-
 	between(0, 3, Offset),
 	DDD is DD + Offset,
 	minesweeper(YY - MM - DDD, Grat, Pts),
@@ -205,11 +232,11 @@ hash_map_opts(_, icon(globalfriday, '/img/globalF-01.png', '/img/markerMmask-01.
 hash_map_opts(_, icon(globalsaturday, '/img/globalSa-01.png', '/img/markerMmask-01.png')).
 hash_map_opts(_, icon(globalsunday, '/img/globalSu-01.png', '/img/markerMmask-01.png')).
 
-hash_map_opts(info( YY - MM - DD, _), Pt) :-
+hash_map_opts(info( YY - MM - DD, _, _), Pt) :-
 	between(0, 3, Offset),
 	DDD is DD + Offset,
 	globalhash(YY - MM - DDD, Pt).
-hash_map_opts(info(YY - MM - DD, _), icon_for(Pt, IconName)) :-
+hash_map_opts(info(YY - MM - DD, _, _), icon_for(Pt, IconName)) :-
 	between(0, 3, Offset),
 	DDD is DD + Offset,
 	globalhash(YY - MM - DDD, Pt),!,
