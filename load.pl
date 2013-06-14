@@ -124,11 +124,15 @@ index_page(Request) :-
 	http_parameters(Request, [
 			lat(Lat, [default('37')]),
 			long(Long, [default('-121')]),
+		        centerlat(CenterLat, [default(Lat)]),
+			centerlong(CenterLong, [default(Long)]),
 			y(YY, [default(Y), integer]),
 			m(MM, [default(M), integer]),
 			d(DD, [default(D), integer]),
 			z(ZZ, [default(8), integer]),
-			provider(Provider, [default(leaflet), oneof([leaflet, google])])
+	                provider(Provider,
+				 [default(leaflet),
+				      oneof([leaflet, google])])
 				 ]),
 	atom_codes(Lat, CLat),
 	atom_codes(Long, CLong),
@@ -140,16 +144,24 @@ index_page(Request) :-
 	    h1(['Impatient Geohasher',
 	       form([id=locform, action=location_by_id(index)],
 					 [
-					  input([type=hidden, id=provider, name=provider, value=Provider], []),
-					  input([type=hidden, id=z, name=z, value=ZZ], []),
-					  input([type=number, min=1900, max=2099, id=y, name=y, value=YY, size=4], []),
-					  input([type=number, min=1, max=12, id=m, name=m, value=MM, size=2], []),
-					  input([type=number, min=1, max=31, id=d, name=d, value=DD, size=2], []),
-					  'lat:',input([type=number, min= -90, max= 90, id=lat, name=lat, value=Lat, size=3], []),
-					  ' long:', input([type=number, min= -180, max=180, id=long, name=long, value=Long, size=4], []),
-					  input([type=submit, id=submitt, name=submitt, value='Move'], [])
-					 ])]),
-	    \geo_map(hash_map_opts([date=(YY - MM - DD), grat=Grat, zoom=ZZ, provider=Provider])),
+   div(class=smallbox, [
+      p([input([type=hidden, name=maptype, value=leaflet], []), 'leaflet']),
+      p([input([type=hidden, name=maptype, value=google], []), 'google']),
+      p([input([type=hidden, name=maptype, value=sat], []), 'satellite']),
+      p([input([type=hidden, name=maptype, value=terrain], []), 'terrain'])
+		       ]),
+   input([type=hidden, id=centerlat, name=centerlat, value=CenterLat], []),
+   input([type=hidden, id=centerlong, name=centerlong, value=CenterLong], []),
+   input([type=hidden, id=provider, name=provider, value=Provider], []),
+   input([type=hidden, id=z, name=z, value=ZZ], []),
+   input([type=number, min=1900, max=2099, id=y, name=y, value=YY, size=4], []),
+   input([type=number, min=1, max=12, id=m, name=m, value=MM, size=2], []),
+   input([type=number, min=1, max=31, id=d, name=d, value=DD, size=2], []),
+   'lat:',input([type=number, min= -90, max= 90, id=lat, name=lat, value=Lat, size=3], []),
+   ' long:', input([type=number, min= -180, max=180, id=long, name=long, value=Long, size=4], []),
+   input([type=submit, id=submitt, name=submitt, value='Move'], [])
+   ])]),
+	    \geo_map(hash_map_opts([centerlat=CenterLat, centerlong=CenterLong, date=(YY - MM - DD), grat=Grat, zoom=ZZ, provider=Provider])),
 	    \dynamic_update_script(Provider),
 	    \disclaimer
 	    ]).
@@ -167,17 +179,22 @@ dynamic_update_script(google) -->
 'function init2() {\n',
 ' google.maps.event.addListener(minesweeper, \'zoom_changed\', function() {\n',
 '   document.getElementById(\'z\').value = minesweeper.getZoom();
+window.setTimeout(function() {	\n',
+'    document.getElementById(\'locform\').submit();
+    }, 9000);
 });\n',
 
 ' google.maps.event.addListener(minesweeper, \'center_changed\', function() {\n',
 '   document.getElementById(\'lat\').value = gratStyle(minesweeper.getCenter().lat());
     document.getElementById(\'long\').value = gratStyle(minesweeper.getCenter().lng());
+    document.getElementById(\'centerlat\').value = minesweeper.getCenter().lat().toString();
+    document.getElementById(\'centerlong\').value = minesweeper.getCenter().lng().toString();
 window.setTimeout(function() {	\n',
 '    document.getElementById(\'locform\').submit();
     }, 3000);
 });\n',
 '}
-google.maps.event.addDomListener(window, \'load\', init2);'])])).
+google.maps.event.addDomListener(window, \'load\', init2);'])])).
 
 dynamic_update_script(leaflet) -->
 	html(
@@ -190,16 +207,16 @@ dynamic_update_script(leaflet) -->
 }',
 'function onMoveEnd(e) {
     document.getElementById(\'lat\').value = gratStyle(minesweeper.getCenter().lat);
-    document.getElementById(\'long\').value = gratStyle(minesweeper.getCenter().lng);
+    document.getElementById(\'long\').value = gratStyle(minesweeper.getCenter().lng);',
+'    document.getElementById(\'centerlat\').value = minesweeper.getCenter().lat.toString();
+    document.getElementById(\'centerlong\').value = minesweeper.getCenter().lng.toString();
     document.getElementById(\'locform\').submit();
-
 }',
 'function onZoomEnd(e) {
      document.getElementById(\'z\').value = minesweeper.getZoom();
 }',
 'minesweeper.on(\'zoomend\', onZoomEnd);',
 'minesweeper.on(\'moveend\', onMoveEnd);'])).
-
 
 disclaimer -->
 	html([div(class=newsbox, [h2('Disclaimer'),
@@ -209,9 +226,8 @@ p(['If you see an incorrect hash point, please report',
 'it to ', a(href='mailto:annie66us@yahoo.com', 'Anniepoo'), ' with your date and graticule.'])])]).
 
 hash_map_opts(Info, center(Lat, Long)) :-
-	member(date=Date, Info),
-	member(grat=Grat, Info),
-	hash_point(Date, Grat, point(Lat, Long)).
+	member(centerlat=Lat, Info),
+	member(centerlong=Long, Info).
 hash_map_opts(Info, point(X,Y)) :-
 	member(date=(YY - MM - DD), Info),
 	member(grat=Grat, Info),
