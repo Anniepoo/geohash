@@ -149,14 +149,35 @@ index_page(Request) :-
 					  ' long:', input([type=number, min= -180, max=180, id=long, name=long, value=Long, size=4], []),
 					  input([type=submit, id=submitt, name=submitt, value='Move'], [])
 					 ])]),
-	    \geo_map(hash_map_opts(info( YY - MM - DD, Grat, ZZ))),
-	    \dynamic_update_script(leaflet),
-	     \disclaimer
+	    \geo_map(hash_map_opts([date=(YY - MM - DD), grat=Grat, zoom=ZZ, provider=Provider])),
+	    \dynamic_update_script(Provider),
+	    \disclaimer
 	    ]).
 
 % temporary til I write the google location adjust
 dynamic_update_script(google) -->
-	[].
+	html(\html_post(head, [
+	    script(type('text/javascript'), \[
+'function gratStyle(x) {
+      if(x <= -1.0) return  Math.ceil(x).toString();
+      if(x < 0.0) return \'-0\';
+      if(x < 1.0) return \'0\';
+      return Math.floor(x).toString();
+}\n',
+'function init2() {\n',
+' google.maps.event.addListener(minesweeper, \'zoom_changed\', function() {\n',
+'   document.getElementById(\'z\').value = minesweeper.getZoom();
+});\n',
+
+' google.maps.event.addListener(minesweeper, \'center_changed\', function() {\n',
+'   document.getElementById(\'lat\').value = gratStyle(minesweeper.getCenter().lat());
+    document.getElementById(\'long\').value = gratStyle(minesweeper.getCenter().lng());
+window.setTimeout(function() {	\n',
+'    document.getElementById(\'locform\').submit();
+    }, 3000);
+});\n',
+'}
+google.maps.event.addDomListener(window, \'load\', init2);'])])).
 
 dynamic_update_script(leaflet) -->
 	html(
@@ -187,16 +208,22 @@ p('Before you sail far out into the Southern Ocean chasing a globalhash, it woul
 p(['If you see an incorrect hash point, please report',
 'it to ', a(href='mailto:annie66us@yahoo.com', 'Anniepoo'), ' with your date and graticule.'])])]).
 
-hash_map_opts(info(Date, Grat, _), center(Lat, Long)) :-
+hash_map_opts(Info, center(Lat, Long)) :-
+	member(date=Date, Info),
+	member(grat=Grat, Info),
 	hash_point(Date, Grat, point(Lat, Long)).
-hash_map_opts(info( YY - MM - DD, Grat, _), point(X,Y)) :-
+hash_map_opts(Info, point(X,Y)) :-
+	member(date=(YY - MM - DD), Info),
+	member(grat=Grat, Info),
 	between(0, 3, Offset),
 	DDD is DD + Offset,
 	minesweeper(YY - MM - DDD, Grat, Pts),
 	member(point(X,Y), Pts).
-hash_map_opts(_, provider(leaflet)).
+hash_map_opts(Info, provider(Provider)) :-
+	member(provider=Provider, Info).
 hash_map_opts(_, id(minesweeper)).
-hash_map_opts(info(_, _, Z), zoom(Z)).
+hash_map_opts(Info, zoom(Z)) :-
+	member(zoom=Z, Info).
 hash_map_opts(_, icon(monday, '/img/markerM-01.png', '/img/markerMmask-01.png')).
 hash_map_opts(_, icon(tuesday, '/img/markerT-01.png', '/img/markerMmask-01.png')).
 hash_map_opts(_, icon(wednesday, '/img/markerW-01.png', '/img/markerMmask-01.png')).
@@ -210,7 +237,9 @@ hash_map_opts(_, shadow_size(_, 48, 48)).
 hash_map_opts(_, icon_anchor(_, 27, 47)).
 hash_map_opts(_, shadow_anchor(_, 27, 47)).
 hash_map_opts(_, popup_anchor(_, -13, -48)).
-hash_map_opts(info(YY - MM - DD, Grat, _), icon_for(Pt, IconName)) :-
+hash_map_opts(Info, icon_for(Pt, IconName)) :-
+	member(date=(YY - MM - DD), Info),
+	member(grat=Grat, Info),
 	between(0, 3, Offset),
 	DDD is DD + Offset,
 	minesweeper(YY - MM - DDD, Grat, Pts),
@@ -232,11 +261,13 @@ hash_map_opts(_, icon(globalfriday, '/img/globalF-01.png', '/img/markerMmask-01.
 hash_map_opts(_, icon(globalsaturday, '/img/globalSa-01.png', '/img/markerMmask-01.png')).
 hash_map_opts(_, icon(globalsunday, '/img/globalSu-01.png', '/img/markerMmask-01.png')).
 
-hash_map_opts(info( YY - MM - DD, _, _), Pt) :-
+hash_map_opts(Info, Pt) :-
+	member(date=(YY - MM - DD), Info),
 	between(0, 3, Offset),
 	DDD is DD + Offset,
 	globalhash(YY - MM - DDD, Pt).
-hash_map_opts(info(YY - MM - DD, _, _), icon_for(Pt, IconName)) :-
+hash_map_opts(Info, icon_for(Pt, IconName)) :-
+	member(date=(YY - MM - DD), Info),
 	between(0, 3, Offset),
 	DDD is DD + Offset,
 	globalhash(YY - MM - DDD, Pt),!,
