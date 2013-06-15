@@ -130,13 +130,12 @@ index_page(Request) :-
 			m(MM, [default(M), integer]),
 			d(DD, [default(D), integer]),
 			z(ZZ, [default(8), integer]),
-	                provider(Provider,
-				 [default(leaflet),
-				      oneof([leaflet, google])])
+			maptype(MapType, [default(leaflet)])
 				 ]),
 	atom_codes(Lat, CLat),
 	atom_codes(Long, CLong),
         code_graticule(CLat, CLong, Grat),
+	maptype_provider(MapType, Provider),
 	reply_html_page(
 	    title('The Impatient Geohasher'),
 	    [
@@ -145,14 +144,13 @@ index_page(Request) :-
 	       form([id=locform, action=location_by_id(index)],
 					 [
    div(class=smallbox, [
-      p([input([type=hidden, name=maptype, value=leaflet], []), 'leaflet']),
-      p([input([type=hidden, name=maptype, value=google], []), 'google']),
-      p([input([type=hidden, name=maptype, value=sat], []), 'satellite']),
-      p([input([type=hidden, name=maptype, value=terrain], []), 'terrain'])
+      \map_type_button(MapType, leaflet, 'Leaflet'),
+      \map_type_button(MapType, google, 'Hybrid'),
+      \map_type_button(MapType, sat, 'Overhead'),
+      \map_type_button(MapType, terrain, 'Contour')
 		       ]),
    input([type=hidden, id=centerlat, name=centerlat, value=CenterLat], []),
    input([type=hidden, id=centerlong, name=centerlong, value=CenterLong], []),
-   input([type=hidden, id=provider, name=provider, value=Provider], []),
    input([type=hidden, id=z, name=z, value=ZZ], []),
    input([type=number, min=1900, max=2099, id=y, name=y, value=YY, size=4], []),
    input([type=number, min=1, max=12, id=m, name=m, value=MM, size=2], []),
@@ -161,10 +159,35 @@ index_page(Request) :-
    ' long:', input([type=number, min= -180, max=180, id=long, name=long, value=Long, size=4], []),
    input([type=submit, id=submitt, name=submitt, value='Move'], [])
    ])]),
-	    \geo_map(hash_map_opts([centerlat=CenterLat, centerlong=CenterLong, date=(YY - MM - DD), grat=Grat, zoom=ZZ, provider=Provider])),
+	    \geo_map(hash_map_opts([
+			 centerlat=CenterLat, centerlong=CenterLong,
+			 date=(YY - MM - DD),
+			 grat=Grat,
+			 zoom=ZZ,
+			 maptype=MapType])),
 	    \dynamic_update_script(Provider),
 	    \disclaimer
 	    ]).
+
+map_type_button(MapType, MapType, Label) -->
+	!,html([
+p([input([type=radio, name=maptype, checked=checked, value=MapType], []), Label])
+	     ]).
+map_type_button(_, Type, Label) -->
+	html([
+p([input([type=radio, name=maptype, value=Type], []), Label])
+	     ]).
+
+maptype_provider(leaflet, leaflet).
+maptype_provider(google,  google).
+maptype_provider(sat, google).
+maptype_provider(terrain, google).
+
+maptype_provider_map_type(leaflet, Style) :-
+	hash_map_opts([], style(Style)).
+maptype_provider_map_type(google, 'HYBRID').
+maptype_provider_map_type(sat, 'SATELLITE').
+maptype_provider_map_type(terrain, 'TERRAIN').
 
 % temporary til I write the google location adjust
 dynamic_update_script(google) -->
@@ -236,10 +259,15 @@ hash_map_opts(Info, point(X,Y)) :-
 	minesweeper(YY - MM - DDD, Grat, Pts),
 	member(point(X,Y), Pts).
 hash_map_opts(Info, provider(Provider)) :-
-	member(provider=Provider, Info).
+	member(maptype=MT, Info),
+	maptype_provider(MT, Provider).
 hash_map_opts(_, id(minesweeper)).
 hash_map_opts(Info, zoom(Z)) :-
 	member(zoom=Z, Info).
+hash_map_opts(Info, maptype(MT)) :-
+	member(maptype=UMT, Info),
+	maptype_provider_map_type(UMT, MT).
+
 hash_map_opts(_, icon(monday, '/img/markerM-01.png', '/img/markerMmask-01.png')).
 hash_map_opts(_, icon(tuesday, '/img/markerT-01.png', '/img/markerMmask-01.png')).
 hash_map_opts(_, icon(wednesday, '/img/markerW-01.png', '/img/markerMmask-01.png')).

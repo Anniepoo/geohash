@@ -73,3 +73,10 @@ h1 {
     font-size: 18px;
     margin: 0px;
 }
+
+
+    
+.smallbox p {
+    display: inline;
+    font-size: 9px;
+}
