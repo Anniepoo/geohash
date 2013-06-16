@@ -276,11 +276,18 @@ hash_map_opts(_, icon(friday, '/img/markerF-01.png', '/img/markerMmask-01.png'))
 hash_map_opts(_, icon(saturday, '/img/markerSa-01.png', '/img/markerMmask-01.png')).
 hash_map_opts(_, icon(sunday, '/img/markerSu-01.png', '/img/markerMmask-01.png')).
 
-hash_map_opts(_, icon_size(_, 48, 48)).
-hash_map_opts(_, shadow_size(_, 48, 48)).
-hash_map_opts(_, icon_anchor(_, 27, 47)).
-hash_map_opts(_, shadow_anchor(_, 27, 47)).
-hash_map_opts(_, popup_anchor(_, -13, -48)).
+hash_map_opts(_, icon_size(Icon, 48, 48)) :- global_icon(Icon).
+hash_map_opts(_, shadow_size(Icon, 48, 48)) :- global_icon(Icon).
+hash_map_opts(_, icon_anchor(Icon, 27, 47)) :- global_icon(Icon).
+hash_map_opts(_, shadow_anchor(Icon, 27, 47)) :- global_icon(Icon).
+hash_map_opts(_, popup_anchor(Icon, -13, -48)) :- global_icon(Icon).
+
+hash_map_opts(_, icon_size(_, 96, 96)).
+hash_map_opts(_, shadow_size(_, 96, 96)).
+hash_map_opts(_, icon_anchor(friday, 42, 83)) :- !.
+hash_map_opts(_, icon_anchor(_, 63, 86)).
+hash_map_opts(_, shadow_anchor(_, 63, 86)).
+hash_map_opts(_, popup_anchor(_, -15, -86)).
 hash_map_opts(Info, icon_for(Pt, IconName)) :-
 	member(date=(YY - MM - DD), Info),
 	member(grat=Grat, Info),
@@ -321,7 +328,8 @@ hash_map_opts(Info, icon_for(Pt, IconName)) :-
 	    IconName).
 
 
-
+global_icon(Icon) :-
+	member(Icon, [globalmonday, globaltuesday, globalwednesday, globalthursday, globalfriday, globalsaturday, globalsunday]).
 
 
 
