@@ -144,7 +144,7 @@ index_page(Request) :-
 	       form([id=locform, action=location_by_id(index)],
 					 [
    div(class=smallbox, [
-	\image_radio_set(map_type_buttons_gen)
+	\image_radio_set(map_type_buttons_gen(MapType))
 %      \map_type_button(MapType, leaflet, 'Leaflet'),
 %      \map_type_button(MapType, google, 'Hybrid'),
 %      \map_type_button(MapType, sat, 'Overhead'),
@@ -170,20 +170,20 @@ index_page(Request) :-
 	    \disclaimer
 	    ]).
 
-map_type_buttons_gen(set_name(maptype)).
-map_type_buttons_gen(id(leaflet)).
-map_type_buttons_gen(id(google)).
-map_type_buttons_gen(id(sat)).
-map_type_buttons_gen(id(terrain)).
-map_type_buttons_gen(image(leaflet, '/img/leaflettype.png')).
-map_type_buttons_gen(image(google, '/img/googletype.png')).
-map_type_buttons_gen(image(sat, '/img/sattype.png')).
-map_type_buttons_gen(image(terrain, '/img/terraintype.png')).
-map_type_buttons_gen(selected_image(leaflet, '/img/leaflettypesel.png')).
-map_type_buttons_gen(selected_image(google, '/img/googletypesel.png')).
-map_type_buttons_gen(selected_image(sat, '/img/sattypesel.png')).
-map_type_buttons_gen(selected_image(terrain, '/img/terraintypesel.png')).
-map_type_buttons_gen(default(leaflet)).
+map_type_buttons_gen(_, set_name(maptype)).
+map_type_buttons_gen(_, id(leaflet)).
+map_type_buttons_gen(_, id(google)).
+map_type_buttons_gen(_, id(sat)).
+map_type_buttons_gen(_, id(terrain)).
+map_type_buttons_gen(_, image(leaflet, '/img/leaflettype.png')).
+map_type_buttons_gen(_, image(google, '/img/googletype.png')).
+map_type_buttons_gen(_, image(sat, '/img/sattype.png')).
+map_type_buttons_gen(_, image(terrain, '/img/terraintype.png')).
+map_type_buttons_gen(_, selected_image(leaflet, '/img/leaflettypesel.png')).
+map_type_buttons_gen(_, selected_image(google, '/img/googletypesel.png')).
+map_type_buttons_gen(_, selected_image(sat, '/img/sattypesel.png')).
+map_type_buttons_gen(_, selected_image(terrain, '/img/terraintypesel.png')).
+map_type_buttons_gen(MapType, default(MapType)).
 
 map_type_button(MapType, MapType, Label) -->
 	!,html([
