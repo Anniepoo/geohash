@@ -33,7 +33,7 @@ user:file_search_path(weblog, '../weblog/weblog/').
 
 :- use_module(weblog(info/maps/map)).
 :- use_module(weblog(info/geohashing/geohashing)).
-
+:- use_module(weblog(html_form/radio)).
 
 % flag to ensure we only start server once
 :- dynamic started/0.
@@ -144,10 +144,11 @@ index_page(Request) :-
 	       form([id=locform, action=location_by_id(index)],
 					 [
    div(class=smallbox, [
-      \map_type_button(MapType, leaflet, 'Leaflet'),
-      \map_type_button(MapType, google, 'Hybrid'),
-      \map_type_button(MapType, sat, 'Overhead'),
-      \map_type_button(MapType, terrain, 'Contour')
+	\image_radio_set(map_type_buttons_gen)
+%      \map_type_button(MapType, leaflet, 'Leaflet'),
+%      \map_type_button(MapType, google, 'Hybrid'),
+%      \map_type_button(MapType, sat, 'Overhead'),
+%      \map_type_button(MapType, terrain, 'Contour')
 		       ]),
    input([type=hidden, id=centerlat, name=centerlat, value=CenterLat], []),
    input([type=hidden, id=centerlong, name=centerlong, value=CenterLong], []),
@@ -168,6 +169,21 @@ index_page(Request) :-
 	    \dynamic_update_script(Provider),
 	    \disclaimer
 	    ]).
+
+map_type_buttons_gen(set_name(maptype)).
+map_type_buttons_gen(id(leaflet)).
+map_type_buttons_gen(id(google)).
+map_type_buttons_gen(id(sat)).
+map_type_buttons_gen(id(terrain)).
+map_type_buttons_gen(image(leaflet, '/img/leaflettype.png')).
+map_type_buttons_gen(image(google, '/img/googletype.png')).
+map_type_buttons_gen(image(sat, '/img/sattype.png')).
+map_type_buttons_gen(image(terrain, '/img/terraintype.png')).
+map_type_buttons_gen(selected_image(leaflet, '/img/leaflettypesel.png')).
+map_type_buttons_gen(selected_image(google, '/img/googletypesel.png')).
+map_type_buttons_gen(selected_image(sat, '/img/sattypesel.png')).
+map_type_buttons_gen(selected_image(terrain, '/img/terraintypesel.png')).
+map_type_buttons_gen(default(leaflet)).
 
 map_type_button(MapType, MapType, Label) -->
 	!,html([
