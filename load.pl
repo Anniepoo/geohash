@@ -300,10 +300,9 @@ hash_map_opts(_, popup_anchor(Icon, -13, -48)) :- global_icon(Icon).
 
 hash_map_opts(_, icon_size(_, 96, 96)).
 hash_map_opts(_, shadow_size(_, 96, 96)).
-hash_map_opts(_, icon_anchor(friday, 42, 83)) :- !.
-hash_map_opts(_, icon_anchor(_, 63, 86)).
-hash_map_opts(_, shadow_anchor(_, 63, 86)).
-hash_map_opts(_, popup_anchor(_, -15, -86)).
+hash_map_opts(_, icon_anchor(_, 48, 96)).
+hash_map_opts(_, shadow_anchor(_, 48, 96)).
+hash_map_opts(_, popup_anchor(_, 0, -64)).
 hash_map_opts(Info, icon_for(Pt, IconName)) :-
 	member(date=(YY - MM - DD), Info),
 	member(grat=Grat, Info),
