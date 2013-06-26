@@ -74,9 +74,17 @@ h1 {
     margin: 0px;
 }
 
-
-    
 .smallbox p {
     display: inline;
     font-size: 9px;
+}
+
+.popupmap {
+    width: 300px;
+    height: 300px;
+}
+
+DIV.popupmap  DIV {
+    width: 300px;
+    height: 300px;
 }

@@ -283,6 +283,7 @@ hash_map_opts(Info, zoom(Z)) :-
 hash_map_opts(Info, maptype(MT)) :-
 	member(maptype=UMT, Info),
 	maptype_provider_map_type(UMT, MT).
+hash_map_opts(_, style(100536)).   % 97737 is mine
 
 hash_map_opts(_, icon(monday, '/img/markerM-01.png', '/img/markerMmask-01.png')).
 hash_map_opts(_, icon(tuesday, '/img/markerT-01.png', '/img/markerMmask-01.png')).
@@ -315,8 +316,21 @@ hash_map_opts(Info, icon_for(Pt, IconName)) :-
 	     [monday, tuesday, wednesday, thursday, friday, saturday, sunday],
 	    IconName).
 
-hash_map_opts(_, popup_for([b(Lat), ', ', b(Long)], point(Lat, Long))).
-
+% TBD this doesn't work
+hash_map_opts(Info, popup_for([
+		     div([
+			 p([b(Lat), ', ', b(Long)]),
+			 div([class=popupmap], [
+		   iframe([
+		       src=A,
+		       width='300px',
+		       height='300px',
+		       scrolling=no
+			  ], [])])
+			 ])], point(Lat, Long))) :-
+	hash_map_opts(Info, icon_for(point(Lat, Long), IconName)),
+	format(atom(A), '/popup?lat=~w&long=~w&icon=~w',
+	       [Lat, Long, IconName]).
 
 % globalhash
 hash_map_opts(_, icon(globalmonday, '/img/globalM-01.png', '/img/markerMmask-01.png')).
@@ -346,5 +360,41 @@ hash_map_opts(Info, icon_for(Pt, IconName)) :-
 global_icon(Icon) :-
 	member(Icon, [globalmonday, globaltuesday, globalwednesday, globalthursday, globalfriday, globalsaturday, globalsunday]).
 
+:- http_handler(root(popup), popup_page , [id(popup)]).
 
+popup_page(Request) :-
+	http_parameters(Request, [
+			lat(Lat, [default('37.0')]),
+			long(Long, [default('-121.0')]),
+			icon(IconName, [default(monday)])
+				 ]),
+	atom_number(Lat, FLat),
+	atom_number(Long, FLong),
+	reply_html_page([title('popup')],
+			[ \html_requires(css('style.css')),
+			  div([class=popupmap],
+			      [\geo_map(popup_map_opts(
+	 [point=point(FLat, FLong), icon_name=IconName],
+				      point(FLat, FLong)))])]).
+
+
+%
+popup_map_opts(_, point(Lat, Long), point(Lat, Long)).
+popup_map_opts(_, _, provider(google)).
+popup_map_opts(_, point(Lat, Long), id(PopupName)) :-
+	LLat is abs(integer(10000.0 * Lat)),
+	LLong is abs(integer(10000.0 * Long)),
+	format(atom(PopupName), 'popup~d~d', [LLat, LLong]).
+popup_map_opts(_, _, zoom(18)).
+popup_map_opts(_, point(Lat, Long), center(Lat, Long)).
+popup_map_opts(Info, _, icon_for(Pt, IconName)) :-
+	hash_map_opts(Info, icon_for(Pt, IconName)).
+popup_map_opts(_, _, maptype('HYBRID')).
+popup_map_opts(Info, _, icon(_, ImageSource, ShadowSource)) :-
+	member(icon_name=Name, Info),
+	hash_map_opts(Info, icon(Name, ImageSource, ShadowSource)).
+popup_map_opts(Info, _, Query) :-
+	Query =.. [Functor, _, _, _],
+	member(Functor, [icon_size, shadow_size, icon_anchor, shadow_anchor, popup_anchor]),
+	hash_map_opts(Info, Query).
 
