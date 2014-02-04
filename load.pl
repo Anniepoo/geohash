@@ -64,7 +64,7 @@ start:-
 %	html_set_options([dialect(xhtml)]),
 	format(user_error, 'Starting geohash server\n', []),
 	server_port(Port),
-	http_server(http_dispatch, [port(Port), timeout(3600)]),
+	http_server(http_dispatch, [port(Port), timeout(15)]),
 	assert(started),
 	http_log('Starting geohash_server on port ~w~n' , [Port]).
 
